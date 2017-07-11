@@ -1,0 +1,89 @@
+% FYDP 
+% Concept 1
+
+% Step 1 decarb
+% init
+clear; close all; clc;
+
+% Constants
+T_room.far = 77;
+T_room.cel = cf(T_room.far);
+t_mix.min = 0.5;
+
+% Inputs
+T_carb.far = 240;
+t_carb.min = 60;
+t_cool.min = 10;
+
+% Temperature
+% Build Profile
+s1.temp.t.min = [0 ,t_carb.min, t_carb.min, t_carb.min+ t_cool.min] ;
+s1.temp.T.far = [T_carb.far, T_carb.far, T_room.far, T_room.far];
+
+% Conversion
+s1.temp.t.hrs= s1.temp.t.min/60;
+s1.temp.T.cel  = cf(s1.temp.T.far);
+
+% Mixing
+% Build Profile
+s1.mix.t.min = [0,t_carb.min/2, t_carb.min/2, t_carb.min/2+t_mix.min,...
+    t_carb.min/2+t_mix.min, t_carb.min+t_cool.min];
+s1.mix.S = [0, 0, 1, 1, 0, 0];
+
+% Conversion
+s1.mix.t.hrs = s1.mix.t.min/60;
+
+% Plot profile step 1
+figure1=figure;
+subplot(2,1,1)
+plot(s1.temp.t.min, s1.temp.T.far)
+title('Step 1: Profiles')
+ylabel('Temperature T [^oF]')
+ylim([(T_room.far-25) (T_carb.far+25)])
+
+subplot(2,1,2)
+ylabel('Mixing Signal [I/O]')
+xlabel('time t [min]')
+ylim([0 1.1])
+print(figure1,'-djpeg','Plots/step1_profile');
+
+% Step 2 simmer
+% Input temps far
+T_sim.far = 200;
+T_sim.cel = cf(T_sim.far);
+
+% Input times min
+t_sim.hrs = 3;
+t_sim.min = t_sim.hrs*60;
+
+% Temperature
+% Build Profile
+s2.temp.t.min = [0 ,t_sim.min, t_sim.min, t_sim.min+ t_cool.min];
+s2.temp.T.far = [T_sim.far, T_sim.far, T_room.far, T_room.far];
+
+% Conversion
+s2.temp.t.hrs= s2.temp.t.min/60;
+s2.temp.T.cel  = cf(s2.temp.T.far);
+
+% Mixing
+% Build Profile
+[s2.mix.t.min, s2.mix.S] = mixprof(t_sim.min, t_mix.min, t_cool.min);
+
+% Conversion
+s2.mix.t.hrs = s2.mix.t.min/60;
+
+% Plot profile step 2
+figure2=figure;
+subplot(2,1,1)
+plot(s2.temp.t.min, s2.temp.T.far)
+title('Step 2: Profiles')
+ylabel('Temperature T [^oF]')
+ylim([(T_room.far-10) (T_carb.far+10)])
+
+subplot(2,1,2)
+plot(s2.mix.t.min, s2.mix.S)
+ylabel('Mixing Signal [I/O]')
+xlabel('time t [min]')
+ylim([0 1.1])
+xlim([0 (t_sim.min + t_cool.min)])
+print(figure2,'-djpeg','Plots/step2_profile');
